@@ -1,101 +1,53 @@
-CREATE DATABASE superstore_db;
-use superstore_db;
-SELECT * FROM superstore LIMIT 10;
-DESCRIBE superstore;
-SELECT ROUND (SUM(sales),2) as total_sales 
-FROM superstore;
-SELECT  category,
-ROUND (SUM(sales),2) as total_sales
-FROM superstore 
-GROUP BY category
-ORDER by total_sales DESC;
-SELECT state,
-ROUND (SUM(sales),2) as total_sales 
-FROM superstore 
-GROUP by state 
-ORDER BY total_sales DESC 
-LIMIT 5;
-SELECT segment,
-COUNT(*) as total_orders,
-ROUND(SUM(sales),2) as total_sales 
-FROM superstore 
-GROUP BY segment 
-ORDER BY total_sales DESC;
-SELECT `Customer Name`,
-ROUND (SUM(sales),2) as total_sales 
-FROm superstore
-GROUP BY `Customer Name`
-ORDER BY total_sales DESC
-LIMIT 10;
-SELECT 
-YEAR(`ORDER date`) as year,
-MONTH (`ORDER date`) as month,
-ROUND (SUM(Sales),2) as monthly_sales
-FROM superstore 
-GROUP BY YEAR(`ORDER DATE`), MONTH (`order date`)
-ORDER BY year,month;
-SELECT `Product Name`,
-ROUND (SUM(Profit),2) as total_profit
-FROM superstore
-GROUP BY `Product Name`
-ORDER BY total_profit DESC 
-LIMIT 10;
-SELECT `Product Name`,
-ROUND(SUM(Profit),2) as total_profit
-FROM superstore
-GROUP BY `Product Name`
-ORDER BY total_profit ASC
-LIMIT 10;
-SELECT `SHIP MODE`,
-COUNT(*) as total_orders,
-ROUND(AVG(Sales),2) as avg_sales
-FROM superstore
-GROUP BY `Ship Mode`
+use e_commerce;
+SHOW tables;
+SELECT * FROM amazon_sales LIMIT 50;
+SELECT COUNT(*) as total_orders
+FROM amazon_sales;
+SELECT Status, COUNT(*) as count
+FROM amazon_sales
+GROUP BY Status
+ORDER BY count DESC;
+SELECT Category, COUNT(*) as total_orders
+FROM amazon_sales
+GROUP BY Category
 ORDER BY total_orders DESC;
-SELECT State,
-ROUND (SUM(sales),2) as total_sales,
-RANK() OVER(ORDER BY SUM(sales) DESC ) as sales_rank
-FROM superstore
-GROUP BY State
-ORDER BY sales_rank;
-use superstore_db;
-WITH customer_sales AS(
-SELECT `Customer Name`,
-ROUND (SUM(Sales),2) as total_sales
-FROM superstore
-GROUP BY `Customer Name`
-)
-SELECT * FROM customer_sales
-ORDER BY total_sales DESC 
-LIMIT 5;
-WITH category_profit AS(
+SELECT Fulfilment, COUNT(*) as count
+FROM amazon_sales
+GROUP BY Fulfilment
+ORDER BY count DESC;
+SELECT `Sales Channel` , COUNT(*) as count
+FROM amazon_sales
+GROUP BY `Sales Channel`
+ORDER BY count DESC;
+SELECT `ship-service-level`,COUNT(*) as count
+FROM amazon_sales
+GROUP BY `ship-service-level`
+ORDER BY count DESC;
+SELECT Category, Status, COUNT(*) as count
+FROM amazon_sales
+GROUP BY Category, Status
+ORDER BY Category;
+SELECT SKU, COUNT(*) as order_count
+FROM amazon_sales 
+GROUP BY SKU 
+ORDER BY order_count DESC
+LIMIT 10;
+SELECT Size, COUNT(*) as count
+FROM amazon_sales
+GROUP BY Size
+ORDER BY count DESC;
 SELECT Category,
-ROUND(SUM(Sales),2) as total_sales ,
-ROUND (SUM(Profit),2) as total_profit,
-ROUND(AVG(Profit),2) as avg_profit
-FROM superstore
-GROUP BY category
-)
-SELECT *,
-RANK()OVER(ORDER BY total7_profit DESC) as profit_rank
-FROM category_profit;
-SELECT `Customer Name`,
-ROUND(SUM(Sales),2)as total_sales
-FROM superstore
-GROUP BY `Customer Name`
-HAVING SUM(Sales)>(
-SELECT AVG(Sales)
-FROM superstore
+COUNT(*) as total_orders,
+RANK () OVER(ORDER BY COUNT(*) DESC) as category_rank
+FROM amazon_sales
+GROUP BY Category;
+WITH category_status AS(
+SELECT Category,
+COUNT(*) as total_orders,
+SUM(CASE WHEN Status='Shipped' THEN 1 ELSE 0 END ) as shipped_orders
+FROM amazon_sales
+GROUP BY Category
 );
-SELECT `Region`,
-ROUND(SUM(Sales),2) as total_sales
-FROM superstore 
-GROUP BY Region
-HAVING SUM(Sales)= (
-SELECT MAX(region_sales)
-FROM(
-SELECT SUM(Sales) as region_sales
-FROM superstore 
-GROUP BY Region
-)as sub
-);
+ROUND ((shipped_orders/total_orders)*100,2) as shipped_percentage
+FROM category_status
+ORDER BY shipped_percentage DESC;
